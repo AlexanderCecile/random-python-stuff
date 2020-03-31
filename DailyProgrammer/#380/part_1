@@ -1,0 +1,53 @@
+# Smooshed Morse Code 1
+# https://www.reddit.com/r/dailyprogrammer/comments/cmd1hb/20190805_challenge_380_easy_smooshed_morse_code_1
+
+import itertools as itt
+
+import pandas as pd
+import requests
+
+alph_to_morse_map = {'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 'f': '..-.', 'g': '--.', 'h': '....',
+                     'i': '..', 'j': '.---', 'k': '-.-', 'l': '.-..', 'm': '--', 'n': '-.', 'o': '---', 'p': '.--.',
+                     'q': '--.-', 'r': '.-.', 's': '...', 't': '-', 'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-',
+                     'y': '-.--', 'z': '--..'}
+
+alph_to_smorse_trans = str.maketrans(alph_to_morse_map)
+
+
+def smorse(str_in: str) -> str:
+    return str_in.translate(alph_to_smorse_trans)
+
+
+# Optional bonus
+enable1_req = requests.get("https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt")
+
+df = pd.DataFrame(data={"word": enable1_req.text.splitlines()})
+
+df["smorse"] = df["word"].str.translate(alph_to_smorse_trans)
+print(df, end="\n\n")
+
+# 1.
+smorse_counts = df["smorse"].value_counts()
+thirteen_word_seq = smorse_counts[smorse_counts.eq(13)]
+print(f"1.\n{thirteen_word_seq}\n")
+
+# 2.
+fifteen_dash_word = df[df["smorse"].str.contains(r"-{15}")]
+print(f"2.\n{fifteen_dash_word}\n")
+
+# 3.
+perfectly_balanced = df[df["word"].str.len().eq(21) & df["smorse"].str.count(r"\.").eq(df["smorse"].str.count("-"))]
+print(f"3.\n{perfectly_balanced}\n")
+
+# 4.
+thirteen_letter_palindrome = df[df["word"].str.len().eq(13) & df["smorse"].eq(df["smorse"].str.slice(step=-1))]
+print(f"4.\n{thirteen_letter_palindrome}\n")
+
+# 5.
+len_13_seqs = ("".join(comb) for comb in itt.product((".", "-"), repeat=13))
+
+counter = 0
+for curr_morse in df["smorse"]:
+    len_13_seqs = [seq for seq in len_13_seqs if seq not in curr_morse]
+
+print(f"5.\n{len_13_seqs}\n")
